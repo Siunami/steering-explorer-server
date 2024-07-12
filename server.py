@@ -1,10 +1,10 @@
 import torch
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, make_response
 import json
 from flask_cors import CORS  # Add this import
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "*"}})  # Allow all origins for all routes
+CORS(app)  # Allow all origins for all routes
 
 # Load all tensors
 try:
@@ -47,69 +47,68 @@ def normalize_values(values):
     return [v / total for v in shifted_values]
 
 
-def handle_options_request():
-    response = jsonify({"status": "ok"})
+def add_cors_headers(response):
     response.headers.add("Access-Control-Allow-Origin", "*")
-    response.headers.add("Access-Control-Allow-Headers", "*")
-    response.headers.add("Access-Control-Allow-Methods", "*")
+    response.headers.add("Access-Control-Allow-Headers", "Content-Type,Authorization")
+    response.headers.add("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE,OPTIONS")
     return response
 
 
 @app.route("/", methods=["GET", "OPTIONS"])
 def hello_world():
     if request.method == "OPTIONS":
-        return handle_options_request()
-    return jsonify({"message": "Hello, World!"})
+        return add_cors_headers(make_response())
+    return add_cors_headers(jsonify({"message": "Hello, World!"}))
 
 
 @app.route("/get_data", methods=["GET", "OPTIONS"])
 def get_data():
     if request.method == "OPTIONS":
-        return handle_options_request()
+        return add_cors_headers(make_response())
 
     index = request.args.get("index", type=int)
     print(index)
 
     if index is None:
-        return jsonify({"error": "Missing parameters"}), 400
+        return add_cors_headers(jsonify({"error": "Missing parameters"}), 400)
 
     indices = cos_sim_indices[index].tolist()
     values = cos_sim_values[index].tolist()
 
-    return jsonify({"indices": indices, "values": values})
+    return add_cors_headers(jsonify({"indices": indices, "values": values}))
 
 
 @app.route("/get_top_effects", methods=["GET", "OPTIONS"])
 def get_top_effects():
     if request.method == "OPTIONS":
-        return handle_options_request()
+        return add_cors_headers(make_response())
 
     feature = request.args.get("feature", type=int)
     print(feature)
 
     if feature is None:
-        return jsonify({"error": "Missing feature parameter"}), 400
+        return add_cors_headers(jsonify({"error": "Missing feature parameter"}), 400)
 
     shifted_feature = feature - 8000
 
     if shifted_feature < 0 or shifted_feature >= 16000:
-        return jsonify({"error": "Feature out of range"}), 400
+        return add_cors_headers(jsonify({"error": "Feature out of range"}), 400)
 
     indices = top_indices[shifted_feature].tolist()
     values = top_values[shifted_feature].tolist()
 
-    return jsonify({"indices": indices, "values": values})
+    return add_cors_headers(jsonify({"indices": indices, "values": values}))
 
 
 @app.route("/get_description", methods=["POST", "OPTIONS"])
 def get_description():
     if request.method == "OPTIONS":
-        return handle_options_request()
+        return add_cors_headers(make_response())
 
     data = request.get_json()
 
     if not data or "keys" not in data or not isinstance(data["keys"], list):
-        return (
+        return add_cors_headers(
             jsonify(
                 {"error": "Invalid request. Expected a JSON object with a 'keys' list."}
             ),
@@ -124,9 +123,7 @@ def get_description():
         if description is not None:
             descriptions[key] = description
 
-    response = jsonify({"descriptions": descriptions})
-    response.headers.add("Access-Control-Allow-Origin", "*")
-    return response
+    return add_cors_headers(jsonify({"descriptions": descriptions}))
 
 
 # Load the JSON data from the file
@@ -145,13 +142,13 @@ def search_features(search_term):
 @app.route("/search/<string:search_term>", methods=["GET", "OPTIONS"])
 def search(search_term):
     if request.method == "OPTIONS":
-        return handle_options_request()
+        return add_cors_headers(make_response())
 
     if not search_term:
-        response = jsonify({"error": "No search term provided"}), 400
+        response = add_cors_headers(jsonify({"error": "No search term provided"}), 400)
     else:
         results = search_features(search_term)
-        response = jsonify(results)
+        response = add_cors_headers(jsonify(results))
 
     print(response)
 
