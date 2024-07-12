@@ -4,7 +4,7 @@ import json
 from flask_cors import CORS  # Add this import
 
 app = Flask(__name__)
-CORS(app)  # Enable CORS for all routes
+CORS(app, resources={r"/*": {"origins": "*"}})  # Allow all origins for all routes
 
 # Load all tensors
 try:
@@ -47,8 +47,19 @@ def normalize_values(values):
     return [v / total for v in shifted_values]
 
 
-@app.route("/get_data", methods=["GET"])
+def handle_options_request():
+    response = jsonify({"status": "ok"})
+    response.headers.add("Access-Control-Allow-Origin", "*")
+    response.headers.add("Access-Control-Allow-Headers", "*")
+    response.headers.add("Access-Control-Allow-Methods", "*")
+    return response
+
+
+@app.route("/get_data", methods=["GET", "OPTIONS"])
 def get_data():
+    if request.method == "OPTIONS":
+        return handle_options_request()
+
     index = request.args.get("index", type=int)
     print(index)
 
@@ -61,8 +72,11 @@ def get_data():
     return jsonify({"indices": indices, "values": values})
 
 
-@app.route("/get_top_effects", methods=["GET"])
+@app.route("/get_top_effects", methods=["GET", "OPTIONS"])
 def get_top_effects():
+    if request.method == "OPTIONS":
+        return handle_options_request()
+
     feature = request.args.get("feature", type=int)
     print(feature)
 
@@ -80,8 +94,11 @@ def get_top_effects():
     return jsonify({"indices": indices, "values": values})
 
 
-@app.route("/get_description", methods=["POST"])
+@app.route("/get_description", methods=["POST", "OPTIONS"])
 def get_description():
+    if request.method == "OPTIONS":
+        return handle_options_request()
+
     data = request.get_json()
 
     if not data or "keys" not in data or not isinstance(data["keys"], list):
@@ -100,7 +117,9 @@ def get_description():
         if description is not None:
             descriptions[key] = description
 
-    return jsonify({"descriptions": descriptions})
+    response = jsonify({"descriptions": descriptions})
+    response.headers.add("Access-Control-Allow-Origin", "*")
+    return response
 
 
 # Load the JSON data from the file
@@ -116,8 +135,11 @@ def search_features(search_term):
     return results
 
 
-@app.route("/search/<string:search_term>", methods=["GET"])
+@app.route("/search/<string:search_term>", methods=["GET", "OPTIONS"])
 def search(search_term):
+    if request.method == "OPTIONS":
+        return handle_options_request()
+
     if not search_term:
         response = jsonify({"error": "No search term provided"}), 400
     else:
@@ -130,4 +152,4 @@ def search(search_term):
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, host="0.0.0.0")
