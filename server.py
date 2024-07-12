@@ -1,34 +1,37 @@
+import boto3
+import io
+import json
 import torch
 from flask import Flask, jsonify, request, make_response
-import json
-from flask_cors import CORS  # Add this import
+from flask_cors import CORS
 
 app = Flask(__name__)
-CORS(app)  # Allow all origins for all routes
+CORS(app)
 
-# Load all tensors
-try:
-    cos_sim_indices = torch.load(
-        "cosine_sim_indices.pt", map_location=torch.device("cpu")
-    )
-    cos_sim_values = torch.load(
-        "cosine_sim_values.pt", map_location=torch.device("cpu")
-    )
-except Exception as e:
-    print(f"Error loading PyTorch files: {e}")
-    exit(1)
+s3 = boto3.client("s3")
+BUCKET_NAME = "steering"  # Replace with your bucket name
 
-# Load tensors from load_effects.py
-try:
-    top_indices = torch.load("top_is_8000_16000.pt", map_location=torch.device("cpu"))
-    top_values = torch.load("top_vs_8000_16000.pt", map_location=torch.device("cpu"))
-except Exception as e:
-    print(f"Error loading PyTorch files for top effects: {e}")
-    exit(1)
 
-# Load the new_autointerp.json file
-with open("new_autointerp.json", "r") as f:
-    autointerp_data = json.load(f)
+def load_tensor_from_s3(key):
+    obj = s3.get_object(Bucket=BUCKET_NAME, Key=key)
+    buffer = io.BytesIO(obj["Body"].read())
+    return torch.load(buffer, map_location=torch.device("cpu"))
+
+
+def load_json_from_s3(key):
+    obj = s3.get_object(Bucket=BUCKET_NAME, Key=key)
+    return json.loads(obj["Body"].read().decode("utf-8"))
+
+
+# Load tensors from S3
+cos_sim_indices = load_tensor_from_s3("cosine_sim_indices.pt")
+cos_sim_values = load_tensor_from_s3("cosine_sim_values.pt")
+top_indices = load_tensor_from_s3("top_is_8000_16000.pt")
+top_values = load_tensor_from_s3("top_vs_8000_16000.pt")
+
+# Load JSON data from S3
+autointerp_data = load_json_from_s3("new_autointerp.json")
+data = load_json_from_s3("autointerp.json")
 
 
 def normalize_values(values):
@@ -124,11 +127,6 @@ def get_description():
             descriptions[key] = description
 
     return add_cors_headers(jsonify({"descriptions": descriptions}))
-
-
-# Load the JSON data from the file
-with open("./autointerp.json", "r") as file:
-    data = json.load(file)
 
 
 def search_features(search_term):
