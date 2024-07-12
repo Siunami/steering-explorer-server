@@ -1,8 +1,10 @@
 import torch
 from flask import Flask, jsonify, request
 import json
+from flask_cors import CORS  # Add this import
 
 app = Flask(__name__)
+CORS(app)  # Enable CORS for all routes
 
 # Load all tensors
 try:
@@ -45,15 +47,6 @@ def normalize_values(values):
     return [v / total for v in shifted_values]
 
 
-@app.route("/get_data", methods=["OPTIONS"])
-def handle_get_data_options():
-    response = app.make_default_options_response()
-    response.headers["Access-Control-Allow-Origin"] = "*"
-    response.headers["Access-Control-Allow-Methods"] = "GET, OPTIONS"
-    response.headers["Access-Control-Allow-Headers"] = "Content-Type"
-    return response
-
-
 @app.route("/get_data", methods=["GET"])
 def get_data():
     index = request.args.get("index", type=int)
@@ -65,23 +58,7 @@ def get_data():
     indices = cos_sim_indices[index].tolist()
     values = cos_sim_values[index].tolist()
 
-    response = jsonify({"indices": indices, "values": values})
-
-    # Add CORS headers to the response
-    response.headers["Access-Control-Allow-Origin"] = "*"
-    response.headers["Access-Control-Allow-Methods"] = "GET, OPTIONS"
-    response.headers["Access-Control-Allow-Headers"] = "Content-Type"
-
-    return response
-
-
-@app.route("/get_top_effects", methods=["OPTIONS"])
-def handle_get_top_effects_options():
-    response = app.make_default_options_response()
-    response.headers["Access-Control-Allow-Origin"] = "*"
-    response.headers["Access-Control-Allow-Methods"] = "GET, OPTIONS"
-    response.headers["Access-Control-Allow-Headers"] = "Content-Type"
-    return response
+    return jsonify({"indices": indices, "values": values})
 
 
 @app.route("/get_top_effects", methods=["GET"])
@@ -100,23 +77,7 @@ def get_top_effects():
     indices = top_indices[shifted_feature].tolist()
     values = top_values[shifted_feature].tolist()
 
-    response = jsonify({"indices": indices, "values": values})
-
-    # Add CORS headers to the response
-    response.headers["Access-Control-Allow-Origin"] = "*"
-    response.headers["Access-Control-Allow-Methods"] = "GET, OPTIONS"
-    response.headers["Access-Control-Allow-Headers"] = "Content-Type"
-
-    return response
-
-
-@app.route("/get_description", methods=["OPTIONS"])
-def handle_get_description_options():
-    response = app.make_default_options_response()
-    response.headers["Access-Control-Allow-Origin"] = "*"
-    response.headers["Access-Control-Allow-Methods"] = "POST, OPTIONS"
-    response.headers["Access-Control-Allow-Headers"] = "Content-Type"
-    return response
+    return jsonify({"indices": indices, "values": values})
 
 
 @app.route("/get_description", methods=["POST"])
@@ -139,14 +100,7 @@ def get_description():
         if description is not None:
             descriptions[key] = description
 
-    response = jsonify({"descriptions": descriptions})
-
-    # Add CORS headers to the response
-    response.headers["Access-Control-Allow-Origin"] = "*"
-    response.headers["Access-Control-Allow-Methods"] = "POST, OPTIONS"
-    response.headers["Access-Control-Allow-Headers"] = "Content-Type"
-
-    return response
+    return jsonify({"descriptions": descriptions})
 
 
 # Load the JSON data from the file
@@ -162,15 +116,6 @@ def search_features(search_term):
     return results
 
 
-@app.route("/search", methods=["OPTIONS"])
-def handle_search_options():
-    response = app.make_default_options_response()
-    response.headers["Access-Control-Allow-Origin"] = "*"
-    response.headers["Access-Control-Allow-Methods"] = "GET, OPTIONS"
-    response.headers["Access-Control-Allow-Headers"] = "Content-Type"
-    return response
-
-
 @app.route("/search/<string:search_term>", methods=["GET"])
 def search(search_term):
     if not search_term:
@@ -180,11 +125,6 @@ def search(search_term):
         response = jsonify(results)
 
     print(response)
-
-    # Add CORS headers to the response
-    response.headers["Access-Control-Allow-Origin"] = "*"
-    response.headers["Access-Control-Allow-Methods"] = "GET, OPTIONS"
-    response.headers["Access-Control-Allow-Headers"] = "Content-Type"
 
     return response
 
