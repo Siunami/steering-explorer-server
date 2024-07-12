@@ -55,6 +55,13 @@ def handle_options_request():
     return response
 
 
+@app.route("/", methods=["GET", "OPTIONS"])
+def hello_world():
+    if request.method == "OPTIONS":
+        return handle_options_request()
+    return jsonify({"message": "Hello, World!"})
+
+
 @app.route("/get_data", methods=["GET", "OPTIONS"])
 def get_data():
     if request.method == "OPTIONS":
