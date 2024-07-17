@@ -13,6 +13,8 @@ BUCKET_NAME = "steering"  # Replace with your bucket name
 # Near the top of your file, after imports
 IS_PRODUCTION = os.environ.get("IS_PRODUCTION", "false").lower() == "true"
 
+print(IS_PRODUCTION)
+
 BASE_URL = "https://siunami--steering-webapp-get-data.modal.run"
 BASE_URL_DEV = "https://siunami--steering-webapp-get-data-dev.modal.run"
 
