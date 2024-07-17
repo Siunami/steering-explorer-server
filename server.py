@@ -1,7 +1,4 @@
 import boto3
-import io
-import json
-import torch
 from flask import Flask, jsonify, request, make_response
 from flask_cors import CORS
 import requests
@@ -17,44 +14,6 @@ BUCKET_NAME = "steering"  # Replace with your bucket name
 IS_PRODUCTION = os.environ.get("IS_PRODUCTION", "false").lower() == "true"
 
 
-# def load_tensor_from_s3(key):
-#     obj = s3.get_object(Bucket=BUCKET_NAME, Key=key)
-#     buffer = io.BytesIO(obj["Body"].read())
-#     return torch.load(buffer, map_location=torch.device("cpu"))
-
-
-# def load_json_from_s3(key):
-#     obj = s3.get_object(Bucket=BUCKET_NAME, Key=key)
-#     return json.loads(obj["Body"].read().decode("utf-8"))
-
-
-# # Load tensors from S3
-# cos_sim_indices = load_tensor_from_s3("cosine_sim_indices.pt")
-# cos_sim_values = load_tensor_from_s3("cosine_sim_values.pt")
-# top_indices = load_tensor_from_s3("top_is_8000_16000.pt")
-# top_values = load_tensor_from_s3("top_vs_8000_16000.pt")
-
-# # Load JSON data from S3
-# autointerp_data = load_json_from_s3("new_autointerp.json")
-# data = load_json_from_s3("autointerp.json")
-
-
-# def normalize_values(values):
-#     # Ensure all values are non-negative
-#     min_val = min(values)
-#     shifted_values = [v - min_val for v in values]
-
-#     # Calculate the sum of all shifted values
-#     total = sum(shifted_values)
-
-#     # If all values are the same (total is 0), return equal proportions
-#     if total == 0:
-#         return [1.0 / len(values)] * len(values)
-
-#     # Normalize values so they sum to 1 while maintaining relative scales
-#     return [v / total for v in shifted_values]
-
-
 def add_cors_headers(response):
     response.headers.add("Access-Control-Allow-Origin", "*")
     response.headers.add("Access-Control-Allow-Headers", "Content-Type,Authorization")
@@ -67,23 +26,6 @@ def hello_world():
     if request.method == "OPTIONS":
         return add_cors_headers(make_response())
     return add_cors_headers(jsonify({"message": "Hello, World!"}))
-
-
-# @app.route("/get_data", methods=["GET", "OPTIONS"])
-# def get_data():
-#     if request.method == "OPTIONS":
-#         return add_cors_headers(make_response())
-
-#     index = request.args.get("index", type=int)
-#     print(index)
-
-#     if index is None:
-#         return add_cors_headers(jsonify({"error": "Missing parameters"}), 400)
-
-#     indices = cos_sim_indices[index].tolist()
-#     values = cos_sim_values[index].tolist()
-
-#     return add_cors_headers(jsonify({"indices": indices, "values": values}))
 
 
 @app.route("/get_data", methods=["GET", "OPTIONS"])
