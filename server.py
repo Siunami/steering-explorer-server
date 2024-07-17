@@ -13,6 +13,9 @@ BUCKET_NAME = "steering"  # Replace with your bucket name
 # Near the top of your file, after imports
 IS_PRODUCTION = os.environ.get("IS_PRODUCTION", "false").lower() == "true"
 
+BASE_URL = "https://siunami--steering-webapp-get-data.modal.run"
+BASE_URL_DEV = "https://siunami--steering-webapp-get-data-dev.modal.run"
+
 
 def add_cors_headers(response):
     response.headers.add("Access-Control-Allow-Origin", "*")
@@ -38,9 +41,11 @@ def get_data():
     print("Received index:", index)
 
     if IS_PRODUCTION:
-        api_url = f"https://siunami--example-get-started-webapp-get-data.modal.run/?index={index}"
+        api_url = f"https://siunami--steering-webapp-get-data.modal.run/?index={index}"
     else:
-        api_url = f"https://siunami--example-get-started-webapp-get-data-dev.modal.run/?index={index}"
+        api_url = (
+            f"https://siunami--steering-webapp-get-data-dev.modal.run/?index={index}"
+        )
 
     response = requests.get(api_url)
 
@@ -62,9 +67,9 @@ def get_top_effects():
     print(feature)
 
     if IS_PRODUCTION:
-        api_url = f"https://siunami--example-get-started-webapp-get-top-effects.modal.run/?feature={feature}"
+        api_url = f"https://siunami--steering-webapp-get-top-effects.modal.run/?feature={feature}"
     else:
-        api_url = f"https://siunami--example-get-started-webapp-get-top-effects-dev.modal.run/?feature={feature}"
+        api_url = f"https://siunami--steering-webapp-get-top-effects-dev.modal.run/?feature={feature}"
 
     response = requests.get(api_url)
 
@@ -99,11 +104,9 @@ def get_description():
             )
 
         if IS_PRODUCTION:
-            api_url = (
-                "https://siunami--example-get-started-webapp-get-description.modal.run"
-            )
+            api_url = f"https://siunami--steering-webapp-get-description.modal.run"
         else:
-            api_url = "https://siunami--example-get-started-webapp-get-description-dev.modal.run"
+            api_url = f"https://siunami--steering-webapp-get-description-dev.modal.run"
 
         print("Sending request to:", api_url)
         print(data)
@@ -143,9 +146,9 @@ def search(search_term):
         return add_cors_headers(jsonify({"error": "No search term provided"}), 400)
 
     if IS_PRODUCTION:
-        api_url = f"https://siunami--example-get-started-webapp-search.modal.run/{search_term}"
+        api_url = f"https://siunami--steering-webapp-search.modal.run/?search_term={search_term}"
     else:
-        api_url = f"https://siunami--example-get-started-webapp-search-dev.modal.run/{search_term}"
+        api_url = f"https://siunami--steering-webapp-search-dev.modal.run/?search_term={search_term}"
 
     response = requests.get(api_url)
 

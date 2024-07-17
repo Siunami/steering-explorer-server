@@ -7,32 +7,7 @@ aws_secret = modal.Secret.from_name("my-aws-secret")
 
 image = modal.Image.debian_slim().pip_install("torch", "boto3")
 
-app = modal.App("example-get-started", image=image, secrets=[aws_secret])
-
-# # @app.route("/get_data", methods=["GET", "OPTIONS"])
-# @app.function(secrets=[aws_secret])
-# @modal.web_endpoint(docs=True)  # adds interactive documentation in the browser
-# def get_data(index):
-#     # Convert index to integer
-#     index = int(index)
-#     # if request.method == "OPTIONS":
-#     #     return add_cors_headers(make_response())
-
-#     # index = request.args.get("index", type=int)
-#     # print(index)# Load tensors from S3
-
-#     indices = cos_sim_indices[index].tolist()
-#     values = cos_sim_values[index].tolist()
-
-#     return {"indices": indices, "values": values}
-
-#     if index is None:
-#         return add_cors_headers(jsonify({"error": "Missing parameters"}), 400)
-
-#     indices = cos_sim_indices[index].tolist()
-#     values = cos_sim_values[index].tolist()
-
-#     return add_cors_headers(jsonify({"indices": indices, "values": values}))
+app = modal.App("steering", image=image, secrets=[aws_secret])
 
 
 @app.cls()
@@ -69,8 +44,8 @@ class WebApp:
 
         self.cos_sim_indices = load_tensor_from_s3("cosine_sim_indices.pt")
         self.cos_sim_values = load_tensor_from_s3("cosine_sim_values.pt")
-        self.top_indices = load_tensor_from_s3("top_is_8000_16000.pt")
-        self.top_values = load_tensor_from_s3("top_vs_8000_16000.pt")
+        self.top_indices = load_tensor_from_s3("top_is.pt")
+        self.top_values = load_tensor_from_s3("top_vs.pt")
 
         # Load JSON data from S3
         self.autointerp_data = load_json_from_s3("new_autointerp.json")
@@ -92,13 +67,11 @@ class WebApp:
         # Convert feature to integer
         feature = int(feature)
 
-        shifted_feature = feature - 8000
-
-        if shifted_feature < 0 or shifted_feature >= 16000:
+        if feature < 0 or feature >= 16364:
             return {"error": "Feature out of range"}
 
-        indices = self.top_indices[shifted_feature].tolist()
-        values = self.top_values[shifted_feature].tolist()
+        indices = self.top_indices[feature].tolist()
+        values = self.top_values[feature].tolist()
 
         return {"indices": indices, "values": values}
 
@@ -127,14 +100,6 @@ class WebApp:
         return results
 
 
-@app.function()
-def square(x):
-    print("This code is running on a remote worker!")
-    # Convert x to an integer before squaring
-    x = int(x)
-    return x**2
-
-
 @app.local_entrypoint()
 def main():
-    print("the square is", square.remote(42))
+    print("loaded")
