@@ -95,11 +95,10 @@ def get_data():
     index = request.args.get("index", type=int, default=0)
     print("Received index:", index)
 
-    # Switch URL based on environment
     if IS_PRODUCTION:
         api_url = f"https://siunami--example-get-started-webapp-get-data.modal.run/?index={index}"
     else:
-        api_url = f"https://siunami--example-get-started-webapp-get-data-dev.modal.run/?index={index}"  # Adjust port if needed
+        api_url = f"https://siunami--example-get-started-webapp-get-data-dev.modal.run/?index={index}"
 
     response = requests.get(api_url)
 
@@ -120,8 +119,11 @@ def get_top_effects():
     feature = request.args.get("feature", type=int)
     print(feature)
 
-    # Fetch data from the external API
-    api_url = f"https://siunami--example-get-started-webapp-get-top-effects.modal.run/?feature={feature}"
+    if IS_PRODUCTION:
+        api_url = f"https://siunami--example-get-started-webapp-get-top-effects.modal.run/?feature={feature}"
+    else:
+        api_url = f"https://siunami--example-get-started-webapp-get-top-effects-dev.modal.run/?feature={feature}"
+
     response = requests.get(api_url)
 
     if response.status_code == 200:
@@ -154,7 +156,6 @@ def get_description():
                 )
             )
 
-        # Fetch data from the external API
         if IS_PRODUCTION:
             api_url = (
                 "https://siunami--example-get-started-webapp-get-description.modal.run"
@@ -199,10 +200,11 @@ def search(search_term):
     if not search_term:
         return add_cors_headers(jsonify({"error": "No search term provided"}), 400)
 
-    # Fetch data from the external API
-    api_url = (
-        f"https://siunami--example-get-started-webapp-search.modal.run/{search_term}"
-    )
+    if IS_PRODUCTION:
+        api_url = f"https://siunami--example-get-started-webapp-search.modal.run/{search_term}"
+    else:
+        api_url = f"https://siunami--example-get-started-webapp-search-dev.modal.run/{search_term}"
+
     response = requests.get(api_url)
 
     if response.status_code == 200:
