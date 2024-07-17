@@ -4,6 +4,7 @@ import json
 import torch
 from flask import Flask, jsonify, request, make_response
 from flask_cors import CORS
+import requests
 
 app = Flask(__name__)
 CORS(app)
@@ -64,21 +65,44 @@ def hello_world():
     return add_cors_headers(jsonify({"message": "Hello, World!"}))
 
 
+# @app.route("/get_data", methods=["GET", "OPTIONS"])
+# def get_data():
+#     if request.method == "OPTIONS":
+#         return add_cors_headers(make_response())
+
+#     index = request.args.get("index", type=int)
+#     print(index)
+
+#     if index is None:
+#         return add_cors_headers(jsonify({"error": "Missing parameters"}), 400)
+
+#     indices = cos_sim_indices[index].tolist()
+#     values = cos_sim_values[index].tolist()
+
+#     return add_cors_headers(jsonify({"indices": indices, "values": values}))
+
+
 @app.route("/get_data", methods=["GET", "OPTIONS"])
 def get_data():
     if request.method == "OPTIONS":
         return add_cors_headers(make_response())
 
-    index = request.args.get("index", type=int)
+    index = request.args.get("index", type=int, default=0)
     print(index)
 
-    if index is None:
-        return add_cors_headers(jsonify({"error": "Missing parameters"}), 400)
+    # Fetch data from the external API
+    api_url = (
+        f"https://siunami--example-get-started-webapp-get-data.modal.run/?index={index}"
+    )
+    response = requests.get(api_url)
 
-    indices = cos_sim_indices[index].tolist()
-    values = cos_sim_values[index].tolist()
-
-    return add_cors_headers(jsonify({"indices": indices, "values": values}))
+    if response.status_code == 200:
+        data = response.json()
+        return add_cors_headers(jsonify(data))
+    else:
+        return add_cors_headers(
+            jsonify({"error": "Failed to fetch data from external API"}), 500
+        )
 
 
 @app.route("/get_top_effects", methods=["GET", "OPTIONS"])
