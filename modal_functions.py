@@ -1,4 +1,5 @@
 import modal
+
 from typing import Dict
 
 
@@ -8,6 +9,7 @@ aws_secret = modal.Secret.from_name("my-aws-secret")
 image = modal.Image.debian_slim().pip_install("torch", "boto3")
 
 app = modal.App("steering", image=image, secrets=[aws_secret])
+# app = modal.App()
 
 
 @app.cls()
@@ -76,7 +78,7 @@ class WebApp:
         values = self.top_values[feature].tolist()
 
         return {"indices": indices, "values": values}
-    
+
     @modal.web_endpoint(docs=True)
     def get_top_actions(self, feature):
         # Convert feature to integer

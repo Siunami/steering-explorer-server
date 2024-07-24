@@ -19,10 +19,13 @@ BASE_URL = "https://siunami--steering-webapp-get-data.modal.run"
 BASE_URL_DEV = "https://siunami--steering-webapp-get-data-dev.modal.run"
 
 
-def add_cors_headers(response):
+def add_cors_headers(response, status_code=200):
+    if isinstance(response, dict):
+        response = jsonify(response)
     response.headers.add("Access-Control-Allow-Origin", "*")
     response.headers.add("Access-Control-Allow-Headers", "Content-Type,Authorization")
     response.headers.add("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE,OPTIONS")
+    response.status_code = status_code
     return response
 
 

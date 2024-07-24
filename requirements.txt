@@ -5,3 +5,4 @@ boto3==1.34.144
 botocore==1.34.144
 six==1.16.0
 requests==2.31.0
+modal==0.63.83
