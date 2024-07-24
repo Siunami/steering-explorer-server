@@ -1,5 +1,5 @@
 import modal
-
+from collections import defaultdict
 from typing import Dict
 
 
@@ -56,7 +56,7 @@ class WebApp:
         self.data = load_json_from_s3("autointerp.json")
 
     @modal.web_endpoint(docs=True)  # adds interactive documentation in the browser
-    def get_data(self, index):
+    def get_cos_sim(self, index):
         # Convert index to integer
         index = int(index)
         print(index)
@@ -115,6 +115,28 @@ class WebApp:
             if search_term.lower() in item[0].lower():
                 results.append(item)
         return results
+
+    @modal.web_endpoint(docs=True)
+    def get_co_occuring_effects(self, feature):
+        parents = self.reverse_top_indices[feature]
+        siblings = defaultdict(float)
+        print(parents)
+
+        for i, parent in enumerate(parents):
+            if parent == -1:
+                continue
+
+            in_val = self.reverse_top_values[feature][i]
+            print(in_val)
+            for j, sibling in enumerate(self.forward_is[parent]):
+                if sibling == -1:
+                    continue
+                siblings[sibling.item()] += in_val * self.top_values[parent][j].item()
+
+        siblings = [(k, v) for k, v in siblings.items()]
+        siblings.sort(key=lambda x: x[1], reverse=True)
+        print(siblings)
+        return siblings
 
 
 @app.local_entrypoint()

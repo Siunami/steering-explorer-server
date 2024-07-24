@@ -36,8 +36,8 @@ def hello_world():
     return add_cors_headers(jsonify({"message": "Hello, World!"}))
 
 
-@app.route("/get_data", methods=["GET", "OPTIONS"])
-def get_data():
+@app.route("/get_cos_sim", methods=["GET", "OPTIONS"])
+def get_cos_sim():
     if request.method == "OPTIONS":
         return add_cors_headers(make_response())
 
@@ -46,10 +46,12 @@ def get_data():
     print("Received index:", index)
 
     if IS_PRODUCTION:
-        api_url = f"https://siunami--steering-webapp-get-data.modal.run/?index={index}"
+        api_url = (
+            f"https://siunami--steering-webapp-get-cos-sim.modal.run/?index={index}"
+        )
     else:
         api_url = (
-            f"https://siunami--steering-webapp-get-data-dev.modal.run/?index={index}"
+            f"https://siunami--steering-webapp-get-cos-sim-dev.modal.run/?index={index}"
         )
 
     response = requests.get(api_url)
@@ -108,6 +110,33 @@ def get_top_actions():
     else:
         return add_cors_headers(
             jsonify({"error": "Failed to fetch data from external API"}), 500
+        )
+
+
+@app.route("/get_co_occurring_effects", methods=["GET", "OPTIONS"])
+def get_co_occurring_effects():
+    if request.method == "OPTIONS":
+        return add_cors_headers({})
+
+    feature = request.args.get("feature", type=int)
+    print(f"Getting co-occurring effects for feature: {feature}")
+
+    if IS_PRODUCTION:
+        api_url = f"https://siunami--steering-webapp-get-co-occuring-effects-dev.modal.run/?feature={feature}"
+    else:
+        api_url = f"https://siunami--steering-webapp-get-co-occuring-effects-dev.modal.run/?feature={feature}"
+
+    print(api_url)
+
+    response = requests.get(api_url)
+
+    if response.status_code == 200:
+        data = response.json()
+        return add_cors_headers(data)
+    else:
+        return add_cors_headers(
+            {"error": "Failed to fetch co-occurring effects data from external API"},
+            500,
         )
 
 
