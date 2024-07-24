@@ -46,6 +46,8 @@ class WebApp:
         self.cos_sim_values = load_tensor_from_s3("cosine_sim_values.pt")
         self.top_indices = load_tensor_from_s3("top_is.pt")
         self.top_values = load_tensor_from_s3("top_vs.pt")
+        self.reverse_top_indices = load_tensor_from_s3("reverse_is.pt")
+        self.reverse_top_values = load_tensor_from_s3("reverse_vs.pt")
 
         # Load JSON data from S3
         self.autointerp_data = load_json_from_s3("new_autointerp.json")
@@ -72,6 +74,19 @@ class WebApp:
 
         indices = self.top_indices[feature].tolist()
         values = self.top_values[feature].tolist()
+
+        return {"indices": indices, "values": values}
+    
+    @modal.web_endpoint(docs=True)
+    def get_top_actions(self, feature):
+        # Convert feature to integer
+        feature = int(feature)
+
+        if feature < 0 or feature >= 16364:
+            return {"error": "Feature out of range"}
+
+        indices = self.reverse_top_indices[feature].tolist()
+        values = self.reverse_top_values[feature].tolist()
 
         return {"indices": indices, "values": values}
 

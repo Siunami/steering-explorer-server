@@ -84,6 +84,30 @@ def get_top_effects():
         )
 
 
+@app.route("/get_top_actions", methods=["GET", "OPTIONS"])
+def get_top_actions():
+    if request.method == "OPTIONS":
+        return add_cors_headers(make_response())
+
+    feature = request.args.get("feature", type=int)
+    print(feature)
+
+    if IS_PRODUCTION:
+        api_url = f"https://siunami--steering-webapp-get-top-actions.modal.run/?feature={feature}"
+    else:
+        api_url = f"https://siunami--steering-webapp-get-top-actions-dev.modal.run/?feature={feature}"
+
+    response = requests.get(api_url)
+
+    if response.status_code == 200:
+        data = response.json()
+        return add_cors_headers(jsonify(data))
+    else:
+        return add_cors_headers(
+            jsonify({"error": "Failed to fetch data from external API"}), 500
+        )
+
+
 @app.route("/get_description", methods=["POST", "OPTIONS"])
 def get_description():
     if request.method == "OPTIONS":
